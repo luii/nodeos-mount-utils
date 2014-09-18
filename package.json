@@ -1,6 +1,6 @@
 {
   "name": "nodeos-mount-utils",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/piranna/NodeOS-mount-utils/issues"
   },
-  "homepage": "https://github.com/piranna/NodeOS-mount-utils"
+  "homepage": "https://github.com/piranna/NodeOS-mount-utils",
+  "dependencies": {
+    "src-errno": "^0.1.0"
+  }
 }
