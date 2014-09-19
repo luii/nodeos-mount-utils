@@ -6,7 +6,7 @@ var errno = require('src-errno');
 var mount = require('src-mount');
 
 
-function execInit(HOME)
+function execInit(HOME, argv)
 {
   try
   {
@@ -16,7 +16,7 @@ function execInit(HOME)
   {
     if(error.code != 'ENOENT') throw error
 
-    return HOME+' not found'
+    return homeStat+' not found'
   }
 
   const initPath = HOME+'/init'
@@ -47,7 +47,7 @@ function execInit(HOME)
   }
 
   // Start user's init
-  spawn(initPath, [],
+  spawn(initPath, argv || [],
   {
     cwd: HOME,
     stdio: 'inherit',
@@ -58,7 +58,7 @@ function execInit(HOME)
   })
   .on('error', function(err)
   {
-    console.error(err)
+    console.trace(err)
   })
 }
 
@@ -88,7 +88,7 @@ function mkdirMount(dev, path, type, flags, extras)
   return res
 }
 
-function mountfs(envDev, path, type, flags, extras, callback)
+function mountfs(envDev, path, type, extras, callback)
 {
   var res, stats, error;
 
@@ -106,7 +106,7 @@ function mountfs(envDev, path, type, flags, extras, callback)
     var dev = process.env[envDev]
     if(dev)
     {
-      res = mkdirMount(dev, path, type, flags, extras);
+      res = mkdirMount(dev, path, type, extras);
       if(res === 0)
         delete process.env[envDev]
       else
@@ -133,8 +133,6 @@ function startRepl(prompt)
   });
 }
 
-
-exports.flags = mount.flags;
 
 exports.execInit   = execInit;
 exports.mkdirMount = mkdirMount;
