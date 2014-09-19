@@ -88,7 +88,7 @@ function mkdirMount(dev, path, type, flags, extras)
   return res
 }
 
-function mountfs(envDev, path, type, extras, callback)
+function mountfs(envDev, path, type, flags, extras, callback)
 {
   var res, stats, error;
 
@@ -106,7 +106,7 @@ function mountfs(envDev, path, type, extras, callback)
     var dev = process.env[envDev]
     if(dev)
     {
-      res = mkdirMount(dev, path, type, extras);
+      res = mkdirMount(dev, path, type, flags, extras);
       if(res === 0)
         delete process.env[envDev]
       else
