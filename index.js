@@ -134,6 +134,8 @@ function startRepl(prompt)
 }
 
 
+exports.flags = mount.flags;
+
 exports.execInit   = execInit;
 exports.mkdirMount = mkdirMount;
 exports.mountfs    = mountfs;
