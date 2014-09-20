@@ -60,6 +60,7 @@ function execInit(HOME, argv)
   {
     console.trace(err)
   })
+  .unref()
 }
 
 function mkdirMount(dev, path, type, flags, extras)
