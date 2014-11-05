@@ -76,8 +76,7 @@ function mkdirMount(dev, path, type, flags, extras)
 
   try
   {
-    fs.mkdirSync(path)
-//    fs.mkdirSync(path, '0000')
+    fs.mkdirSync(path, '0111')
   }
   catch(error)
   {
