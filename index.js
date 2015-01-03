@@ -2,8 +2,7 @@ var fs = require('fs')
 
 var spawn = require('child_process').spawn
 
-var errno = require('src-errno');
-var mount = require('src-mount');
+var mount = require('nodeos-mount');
 
 
 function execInit(HOME, argv)
@@ -16,7 +15,7 @@ function execInit(HOME, argv)
   {
     if(error.code != 'ENOENT') throw error
 
-    return homeStat+' not found'
+    return HOME+' not found'
   }
 
   const initPath = HOME+'/init'
@@ -56,24 +55,12 @@ function execInit(HOME, argv)
     uid: homeStat.uid,
     gid: homeStat.gid
   })
-  .on('error', function(err)
-  {
-    console.trace(err)
-  })
+  .on('error', console.trace.bind(console))
   .unref()
 }
 
-function mkdirMount(dev, path, type, flags, extras)
+function mkdirMount(dev, path, type, flags, extras, callback)
 {
-  if(typeof flags == 'string')
-  {
-    extras = flags
-    flags = undefined
-  }
-
-  flags = flags || null
-  extras = extras || ''
-
   try
   {
     fs.mkdirSync(path, '0111')
@@ -83,43 +70,34 @@ function mkdirMount(dev, path, type, flags, extras)
     if(error.code != 'EEXIST') throw error
   }
 
-  var res = mount.mount(dev, path, type, flags, extras);
-  if(res == -1) console.error('Error '+errno.getErrorString()+' while mounting',path)
-  return res
+  mount.mount(dev, path, type, flags, extras, callback);
 }
 
 function mountfs(envDev, path, type, flags, extras, callback)
 {
-  var res, stats, error;
-
   try
   {
     // Running on Docker?
-    stats = fs.statSync('/.dockerinit')
+    fs.statSync('/.dockerinit')
   }
   catch(err)
   {
     if(err.code != 'ENOENT') throw err
 
-    error = err;
-
     var dev = process.env[envDev]
     if(dev)
-    {
-      res = mkdirMount(dev, path, type, flags, extras);
-      if(res === 0)
+      return mkdirMount(dev, path, type, flags, extras, function(error)
+      {
+        if(error) return callback(error)
+
         delete process.env[envDev]
-      else
-        error = res;
-    }
-    else
-      error = envDev+' filesystem not defined'
+        callback()
+      });
+
+    return callback(envDev+' filesystem not defined')
   }
 
-  if(stats != undefined || res === 0)
-    return callback()
-
-  callback(error)
+  return callback()
 }
 
 function startRepl(prompt)
@@ -134,7 +112,7 @@ function startRepl(prompt)
 }
 
 
-exports.flags = mount.flags;
+exports.flags = mount;
 
 exports.execInit   = execInit;
 exports.mkdirMount = mkdirMount;
