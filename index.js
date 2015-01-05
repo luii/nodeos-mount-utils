@@ -5,7 +5,7 @@ var spawn = require('child_process').spawn
 var mount = require('nodeos-mount');
 
 
-function execInit(HOME, argv)
+function execInit(HOME, argv, onerror)
 {
   try
   {
@@ -15,7 +15,7 @@ function execInit(HOME, argv)
   {
     if(error.code != 'ENOENT') throw error
 
-    return HOME+' not found'
+    return onerror(HOME+' not found')
   }
 
   const initPath = HOME+'/init'
@@ -28,20 +28,20 @@ function execInit(HOME, argv)
   {
     if(error.code != 'ENOENT') throw error
 
-    return initPath+' not found'
+    return onerror(initPath+' not found')
   }
 
   if(!initStat.isFile())
-    return initPath+' is not a file';
+    return onerror(initPath+' is not a file');
 
   if(homeStat.uid != initStat.uid || homeStat.gid != initStat.gid)
-    return HOME+" uid & gid don't match with its init"
+    return onerror(HOME+" uid & gid don't match with its init")
 
   // Update env with user variables
   var env =
   {
     HOME: HOME,
-    PATH: HOME+'/bin:/usr/bin',
+    PATH: HOME+'/bin:/bin',
     __proto__: process.env
   }
 
@@ -55,7 +55,7 @@ function execInit(HOME, argv)
     uid: homeStat.uid,
     gid: homeStat.gid
   })
-  .on('error', console.trace.bind(console))
+  .on('error', onerror)
   .unref()
 }
 
@@ -75,6 +75,12 @@ function mkdirMount(dev, path, type, flags, extras, callback)
 
 function mountfs(envDev, path, type, flags, extras, callback)
 {
+  if(extras instanceof Function)
+  {
+    callback = extras
+    extras   = undefined
+  }
+
   try
   {
     // Running on Docker?
