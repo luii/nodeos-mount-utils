@@ -106,6 +106,37 @@ function mountfs(envDev, path, type, flags, extras, callback)
   return callback()
 }
 
+function mountfs_path(devPath, path, type, flags, extras, callback)
+{
+  if(extras instanceof Function)
+  {
+    callback = extras
+    extras   = undefined
+  }
+
+  try
+  {
+    // Running on Docker?
+    fs.statSync('/.dockerinit')
+  }
+  catch(err)
+  {
+    if(err.code != 'ENOENT') throw err
+
+    if(devPath)
+      return mkdirMount(devPath, path, type, flags, extras, function(error)
+      {
+        if(error) return callback(error)
+
+        callback()
+      });
+
+    return callback(devPath+' filesystem not defined')
+  }
+
+  return callback()
+}
+
 function startRepl(prompt)
 {
   console.log('Starting REPL session')
