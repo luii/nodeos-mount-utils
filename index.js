@@ -137,6 +137,30 @@ function mountfs_path(devPath, path, type, flags, extras, callback)
   return callback()
 }
 
+function move(source, target, callback)
+{
+  mount.mount(source, target, mount.MS_MOVE, function(error)
+  {
+    if(error) return callback(error)
+
+    fs.readdir(source, function(error, files)
+    {
+      if(error) return callback(error)
+
+      if(files.length) return callback()
+      fs.rmdir(source, callback)
+    })
+  });
+}
+
+function moveSync(source, target)
+{
+  mount.mountSync(source, target, mount.MS_MOVE);
+
+  if(!fs.readdirSync(source).length)
+    fs.rmdirSync(source)
+}
+
 function startRepl(prompt)
 {
   console.log('Starting REPL session')
@@ -151,7 +175,10 @@ function startRepl(prompt)
 
 exports.flags = mount;
 
-exports.execInit   = execInit;
-exports.mkdirMount = mkdirMount;
-exports.mountfs    = mountfs;
-exports.startRepl  = startRepl;
+exports.execInit     = execInit;
+exports.mkdirMount   = mkdirMount;
+exports.mountfs      = mountfs;
+exports.mountfs_path = mountfs_path;
+exports.move         = move;
+exports.moveSync     = moveSync;
+exports.startRepl    = startRepl;
