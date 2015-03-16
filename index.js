@@ -2,7 +2,8 @@ var fs = require('fs')
 
 var spawn = require('child_process').spawn
 
-var mount = require('nodeos-mount');
+var mkdirp = require('mkdirp').sync;
+var mount  = require('nodeos-mount');
 
 
 function execInit(HOME, argv, onerror)
@@ -63,7 +64,7 @@ function mkdirMount(dev, path, type, flags, extras, callback)
 {
   try
   {
-    fs.mkdirSync(path, '0111')
+    mkdirp(path, '0111')
   }
   catch(error)
   {
