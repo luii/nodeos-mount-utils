@@ -38,26 +38,15 @@ function execInit(HOME, argv, onerror)
   if(homeStat.uid != initStat.uid || homeStat.gid != initStat.gid)
     return onerror(HOME+" uid & gid don't match with its init")
 
-  // Update env with user variables
-  var env =
-  {
-    HOME: HOME,
-    PATH: HOME+'/bin:/bin',
-    __proto__: process.env
-  }
-
   // Start user's init
-  spawn(initPath, argv || [],
+  spawn(__dirname+'/bin/chrootInit', argv || [],
   {
     cwd: HOME,
     stdio: 'inherit',
-    env: env,
-    detached: true,
     uid: homeStat.uid,
     gid: homeStat.gid
   })
   .on('error', onerror)
-  .unref()
 }
 
 function mkdirMount(dev, path, type, flags, extras, callback)

@@ -1,0 +1,18 @@
+#! /usr/bin/env node
+
+var spawn = require('child_process').spawn
+
+var chroot = require('posix').chroot
+
+chroot('.')
+
+// Update env with user variables
+process.env.PATH = '/bin';
+
+spawn('/init', process.argv.slice(2),
+{
+  stdio: 'inherit',
+  detached: true
+})
+.on('error', console.trace.bind(console))
+.unref()
