@@ -14,7 +14,7 @@ function execInit(HOME, argv, onerror)
   }
   catch(error)
   {
-    if(error.code != 'ENOENT') throw error
+    if(error.code != 'ENOENT') return onerror(error)
 
     return onerror(HOME+' not found')
   }
@@ -27,7 +27,7 @@ function execInit(HOME, argv, onerror)
   }
   catch(error)
   {
-    if(error.code != 'ENOENT') throw error
+    if(error.code != 'ENOENT') return onerror(error)
 
     return onerror(initPath+' not found')
   }
@@ -53,11 +53,11 @@ function mkdirMount(dev, path, type, flags, extras, callback)
 {
   try
   {
-    mkdirp(path, '0111')
+    mkdirp(path, '0000')
   }
   catch(error)
   {
-    if(error.code != 'EEXIST') throw error
+    if(error.code != 'EEXIST') return callback(error)
   }
 
   mount.mount(dev, path, type, flags, extras, callback);
@@ -76,9 +76,9 @@ function mountfs(envDev, path, type, flags, extras, callback)
     // Running on Docker?
     fs.statSync('/.dockerinit')
   }
-  catch(err)
+  catch(error)
   {
-    if(err.code != 'ENOENT') throw err
+    if(err.code != 'ENOENT') return callback(error)
 
     var dev = process.env[envDev]
     if(dev)
@@ -109,9 +109,9 @@ function mountfs_path(devPath, path, type, flags, extras, callback)
     // Running on Docker?
     fs.statSync('/.dockerinit')
   }
-  catch(err)
+  catch(error)
   {
-    if(err.code != 'ENOENT') throw err
+    if(err.code != 'ENOENT') return callback(error)
 
     if(devPath)
       return mkdirMount(devPath, path, type, flags, extras, function(error)
@@ -151,6 +151,31 @@ function moveSync(source, target)
     fs.rmdirSync(source)
 }
 
+function mkdirMove(source, target, callback)
+{
+  try
+  {
+    mkdirp(target, '0000')
+  }
+  catch(error)
+  {
+    if(error.code != 'EEXIST') return callback(error)
+  }
+
+  mount.mount(source, target, mount.MS_MOVE, function(error)
+  {
+    if(error) return callback(error)
+
+    fs.readdir(source, function(error, files)
+    {
+      if(error) return callback(error)
+
+      if(files.length) return callback()
+      fs.rmdir(source, callback)
+    })
+  });
+}
+
 function startRepl(prompt)
 {
   console.log('Starting REPL session')
@@ -171,4 +196,5 @@ exports.mountfs      = mountfs;
 exports.mountfs_path = mountfs_path;
 exports.move         = move;
 exports.moveSync     = moveSync;
+exports.mkdirMove    = mkdirMove;
 exports.startRepl    = startRepl;
