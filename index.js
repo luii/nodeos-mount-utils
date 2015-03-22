@@ -6,7 +6,7 @@ var mkdirp = require('mkdirp').sync;
 var mount  = require('nodeos-mount');
 
 
-function execInit(HOME, argv, onerror)
+function execInit(HOME, argv, callback)
 {
   try
   {
@@ -14,9 +14,9 @@ function execInit(HOME, argv, onerror)
   }
   catch(error)
   {
-    if(error.code != 'ENOENT') return onerror(error)
+    if(error.code != 'ENOENT') return callback(error)
 
-    return onerror(HOME+' not found')
+    return callback(HOME+' not found')
   }
 
   const initPath = HOME+'/init'
@@ -27,16 +27,16 @@ function execInit(HOME, argv, onerror)
   }
   catch(error)
   {
-    if(error.code != 'ENOENT') return onerror(error)
+    if(error.code != 'ENOENT') return callback(error)
 
-    return onerror(initPath+' not found')
+    return callback(initPath+' not found')
   }
 
   if(!initStat.isFile())
-    return onerror(initPath+' is not a file');
+    return callback(initPath+' is not a file');
 
   if(homeStat.uid != initStat.uid || homeStat.gid != initStat.gid)
-    return onerror(HOME+" uid & gid don't match with its init")
+    return callback(HOME+" uid & gid don't match with its init")
 
   // Start user's init
   spawn(__dirname+'/bin/chrootInit', argv || [],
@@ -46,7 +46,7 @@ function execInit(HOME, argv, onerror)
     uid: homeStat.uid,
     gid: homeStat.gid
   })
-  .on('error', onerror)
+  .on('exit', callback)
 }
 
 function mkdirMount(dev, path, type, flags, extras, callback)
