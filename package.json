@@ -1,6 +1,6 @@
 {
   "name": "nodeos-mount-utils",
-  "version": "0.0.22",
+  "version": "0.0.25",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
   "homepage": "https://github.com/NodeOS/nodeos-mount-utils",
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "nodeos-mount": "^0.1.13",
-    "posix": "^4.0.0"
+    "nodeos-mount": "^0.1.15",
+    "posix": "^2.0.1"
   }
 }
