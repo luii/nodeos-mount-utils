@@ -39,12 +39,10 @@ function execInit(HOME, argv, callback)
     return callback(HOME+" uid & gid don't match with its init")
 
   // Start user's init
-  spawn(__dirname+'/bin/chrootInit', argv || [],
+  spawn(__dirname+'/bin/chrootInit', [homeStat.uid, homeStat.gid].concat(argv),
   {
     cwd: HOME,
-    stdio: 'inherit',
-    uid: homeStat.uid,
-    gid: homeStat.gid
+    stdio: 'inherit'
   })
   .on('exit', callback)
 }

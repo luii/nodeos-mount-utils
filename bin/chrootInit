@@ -4,15 +4,18 @@ var spawn = require('child_process').spawn
 
 var chroot = require('posix').chroot
 
+
 chroot('.')
 
 // Update env with user variables
 process.env.PATH = '/bin';
 
-spawn('/init', process.argv.slice(2),
+spawn('/init', process.argv.slice(4),
 {
   stdio: 'inherit',
-  detached: true
+  detached: true,
+  uid: parseInt(process.argv[2]),
+  gid: parseInt(process.argv[3])
 })
 .on('error', console.trace.bind(console))
 .unref()
