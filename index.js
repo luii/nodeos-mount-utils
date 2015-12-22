@@ -6,6 +6,21 @@ var mkdirp = require('mkdirp').sync;
 var mount  = require('nodeos-mount');
 
 
+function mkdir(path, callback)
+{
+  try
+  {
+    mkdirp(path, '0000')
+  }
+  catch(error)
+  {
+    if(error.code != 'EEXIST') return callback(error)
+  }
+
+  callback()
+}
+
+
 function execInit(HOME, argv, callback)
 {
   try
@@ -49,18 +64,15 @@ function execInit(HOME, argv, callback)
 
 function mkdirMount(dev, path, type, flags, extras, callback)
 {
-  try
+  mkdir(path, function(error)
   {
-    mkdirp(path, '0000')
-  }
-  catch(error)
-  {
-    if(error.code != 'EEXIST') return callback(error)
-  }
+    if(error) return callback(error)
 
-  mount.mount(dev, path, type, flags, extras, callback);
+    mount.mount(dev, path, type, flags, extras, callback);
+  })
 }
 
+// [ToDo] deprecate
 function mountfs(envDev, path, type, flags, extras, callback)
 {
   if(extras instanceof Function)
@@ -112,12 +124,7 @@ function mountfs_path(devPath, path, type, flags, extras, callback)
     if(err.code != 'ENOENT') return callback(error)
 
     if(devPath)
-      return mkdirMount(devPath, path, type, flags, extras, function(error)
-      {
-        if(error) return callback(error)
-
-        callback()
-      });
+      return mkdirMount(devPath, path, type, flags, extras, callback);
 
     return callback(devPath+' filesystem not defined')
   }
@@ -151,27 +158,12 @@ function moveSync(source, target)
 
 function mkdirMove(source, target, callback)
 {
-  try
-  {
-    mkdirp(target, '0000')
-  }
-  catch(error)
-  {
-    if(error.code != 'EEXIST') return callback(error)
-  }
-
-  mount.mount(source, target, mount.MS_MOVE, function(error)
+  mkdir(target, function(error)
   {
     if(error) return callback(error)
 
-    fs.readdir(source, function(error, files)
-    {
-      if(error) return callback(error)
-
-      if(files.length) return callback()
-      fs.rmdir(source, callback)
-    })
-  });
+    move(source, target, callback)
+  })
 }
 
 function startRepl(prompt)
