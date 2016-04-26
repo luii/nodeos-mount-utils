@@ -1,11 +1,24 @@
-var fs = require('fs')
+'use strict'
 
+// Dependencies
+var fs = require('fs')
 var spawn = require('child_process').spawn
 
-var mkdirp = require('mkdirp').sync;
-var mount  = require('nodeos-mount');
+var mkdirp = require('mkdirp').sync
+var mount  = require('nodeos-mount')
 
+/**
+ * @module nodeos-mount-utils
+ */
 
+/**
+ * Creates a directory with `0000` file permission (0000 => no permission to read/write or execute)
+ * @access public
+ * @param  {String}   path     The path of the
+ * @param  {Function} callback Callback
+ * @return {Function} Invokes and returns the callback.
+ *                    The callback can be invoked with a error
+ */
 function mkdir(path, callback)
 {
   try
@@ -14,27 +27,38 @@ function mkdir(path, callback)
   }
   catch(error)
   {
+    // catch everything, but not Entry Exists
     if(error.code != 'EEXIST') return callback(error)
   }
 
-  callback()
+  return callback()
 }
 
-
+/**
+ * Execute the init file
+ * @access public
+ * @param  {String}   HOME Path of the home folder where the init file is located
+ * @param  {Array}    argv Array of arguments
+ * @return {Function}      Retrurns the callback if no error occoured or with
+ *                         a argument if a occoured
+ */
 function execInit(HOME, argv, callback)
 {
   try
   {
+    // get a stat of the home folder
     var homeStat = fs.statSync(HOME)
   }
   catch(error)
   {
+    // Return every errror but no ENOENT
     if(error.code != 'ENOENT') return callback(error)
 
-    return callback(HOME+' not found')
+    return callback(`${HOME} not found`)
   }
 
-  const initPath = HOME+'/init'
+  // path to the init file
+  const initPath = `${HOME}/init`
 
   try
   {
@@ -44,17 +68,18 @@ function execInit(HOME, argv, callback)
   {
     if(error.code != 'ENOENT') return callback(error)
 
-    return callback(initPath+' not found')
+    return callback(`${initPath} not found`)
   }
 
+  // check if the init file is an actual file
   if(!initStat.isFile())
-    return callback(initPath+' is not a file');
+    return callback(`${initPath} is not a file`);
 
   if(homeStat.uid != initStat.uid || homeStat.gid != initStat.gid)
-    return callback(HOME+" uid & gid don't match with its init")
+    return callback(`${HOME} uid & gid don't match with its init`)
 
   // Start user's init
-  spawn(__dirname+'/bin/chrootInit', [homeStat.uid, homeStat.gid].concat(argv),
+  spawn(`${__dirname}/bin/chrootInit`, [homeStat.uid, homeStat.gid].concat(argv),
   {
     cwd: HOME,
     stdio: 'inherit'
@@ -62,6 +87,25 @@ function execInit(HOME, argv, callback)
   .on('exit', callback)
 }
 
+/**
+ * Asynchronous function for creating a
+ * directory and then mount the `dev` file to it
+ * @access public
+ * @example
+ *   mkdirMount('path/to/my/dev', 'path/to/my/dir', 'type', function(err) {})
+ * @function
+ * @param  {String}       dev      Device-File being mounted (located in /dev) a.k.a. devFile.
+ * @param  {String}       path     Directory to mount the device to.
+ * @param  {String}       type     Filesystem identificator (one of /proc/filesystems).
+ * @param  {Array|Number} [flags]  See below.
+ * @param  {String}       [extras] The data argument is interpreted by the
+ *                                 different file systems.
+ *                                 Typically it is a string of comma-separated
+ *                                 options understood by this file system.
+ * @param  {Function}     callback Function called after the mount operation finishes.
+ *                                 Receives only one argument err.
+ * @see    For more Information please visit {@link https://github.com/NodeOS/nodeos-mount#mountmountsource-target-fstype-options-datastr-callback|this} site
+ */
 function mkdirMount(dev, path, type, flags, extras, callback)
 {
   mkdir(path, function(error)
@@ -72,7 +116,24 @@ function mkdirMount(dev, path, type, flags, extras, callback)
   })
 }
 
-// [ToDo] deprecate
+/**
+ * Mounts a filesystem through a environment variable
+ * @access public
+ * @example
+ *   mountfs('envid', 'path/to/mount/to', 'type', function(err) {})
+ * @param  {String}       path     Directory to mount the device to.
+ * @param  {String}       type     Filesystem identificator (one of /proc/filesystems).
+ * @param  {Array|Number} [flags]  See below.
+ * @param  {String}       [extras] The data argument is interpreted by the
+ *                                 different file systems.
+ *                                 Typically it is a string of comma-separated
+ *                                 options understood by this file system.
+ * @param  {Function}     callback Function called after the mount operation finishes.
+ *                                 Receives only one argument err.
+ * @return {Function}              Returns the callback
+ * @see    For more Information please visit {@link https://github.com/NodeOS/nodeos-mount#mountmountsource-target-fstype-options-datastr-callback|this} site
+ * @todo   this needs to be deprecated
+ */
 function mountfs(envDev, path, type, flags, extras, callback)
 {
   if(extras instanceof Function)
@@ -88,10 +149,14 @@ function mountfs(envDev, path, type, flags, extras, callback)
   }
   catch(error)
   {
+    // catch everything, but not "Error no Entry"
     if(err.code != 'ENOENT') return callback(error)
 
+    // get environment variable
     var dev = process.env[envDev]
     if(dev)
+    {
+      // create the path and mount the dev file to it
       return mkdirMount(dev, path, type, flags, extras, function(error)
       {
         if(error) return callback(error)
@@ -99,13 +164,30 @@ function mountfs(envDev, path, type, flags, extras, callback)
         delete process.env[envDev]
         callback()
       });
-
-    return callback(envDev+' filesystem not defined')
+    }
+    return callback(`${envDev} filesystem not defined`)
   }
 
   return callback()
 }
 
+/**
+ * Mounts a filesystem through a path
+ * @access public
+ * @example
+ *   mountfs_path('path/to/dev', 'path/to/mount/to', 'type', function(err) {})
+ * @param  {String}       path     Directory to mount the device to.
+ * @param  {String}       type     Filesystem identificator (one of /proc/filesystems).
+ * @param  {Array|Number} [flags]  See below.
+ * @param  {String}       [extras] The data argument is interpreted by the
+ *                                 different file systems.
+ *                                 Typically it is a string of comma-separated
+ *                                 options understood by this file system.
+ * @param  {Function}     callback Function called after the mount operation finishes.
+ *                                 Receives only one argument err.
+ * @return {Function}              Returns the callback
+ * @see    For more Information please visit {@link https://github.com/NodeOS/nodeos-mount#mountmountsource-target-fstype-options-datastr-callback|this} site
+ */
 function mountfs_path(devPath, path, type, flags, extras, callback)
 {
   if(extras instanceof Function)
@@ -121,17 +203,34 @@ function mountfs_path(devPath, path, type, flags, extras, callback)
   }
   catch(error)
   {
+    // catch everything, but not "Error no Entry"
     if(err.code != 'ENOENT') return callback(error)
 
+    // mount the filesystem
     if(devPath)
       return mkdirMount(devPath, path, type, flags, extras, callback);
 
-    return callback(devPath+' filesystem not defined')
+    return callback(`${devPath} filesystem not defined`)
   }
 
   return callback()
 }
 
+/**
+ * Asynchronously move a subtree.
+ * The source specifies an existing mount point and target specifies the new location.
+ * The move is atomic: at no point is the subtree unmounted.
+ * The filesystemtype, mountflags, and data arguments are ignored.
+ * @access public
+ * @example
+ *   move('source/path', 'target/path', function(err) {})
+ * @param  {String}   source   The source subtree to move
+ * @param  {String}   target   The path to move the subtree into
+ * @param  {Function} callback Function called after the mount operation finishes.
+ *                             Receives only one argument err.
+ * @return {Function}          Returns the callback
+ * @see   For more Information please visit {@link https://github.com/NodeOS/nodeos-mount#mountmountsource-target-fstype-options-datastr-callback|this} site
+ */
 function move(source, target, callback)
 {
   mount.mount(source, target, mount.MS_MOVE, function(error)
@@ -148,24 +247,57 @@ function move(source, target, callback)
   });
 }
 
+/**
+ * Synchronously move a subtree
+ * The source specifies an existing mount point and target specifies the new location.
+ * The move is atomic: at no point is the subtree unmounted.
+ * The filesystemtype, mountflags, and data arguments are ignored.
+ * @access public
+ * @example
+ *   moveSync('source/path', 'target/path')
+ * @param {String}   source   The source subtree to move
+ * @param {String}   target   The path to move the subtree into
+ * @see   For more Information please visit {@link https://github.com/NodeOS/nodeos-mount#mountmountsource-target-fstype-options-datastr-callback|this} site
+ */
 function moveSync(source, target)
 {
   mount.mountSync(source, target, mount.MS_MOVE);
 
+  // if no more file is in the source path
   if(!fs.readdirSync(source).length)
-    fs.rmdirSync(source)
+    fs.rmdirSync(source) // then delete the source
 }
 
+/**
+ * Asynchronously create a target directory mount the source with MS_MOVE to it
+ * and move all files to the newly created directory
+ * @access public
+ * @example
+ *   mkdirMove('source/path', 'target/path', function(err) {})
+ * @param  {String}   source   The source subtree to move
+ * @param  {String}   target   The path to move the subtree into
+ * @param  {Function} callback Function called after the mount operation finishes.
+ *                             Receives only one argument err.
+ * @return {Function}          Returns the callback
+ */
 function mkdirMove(source, target, callback)
 {
+  // create target directory
   mkdir(target, function(error)
   {
     if(error) return callback(error)
 
+    // move all the files to the target
     move(source, target, callback)
   })
 }
 
+/**
+ * Starts a repl in case if somethings not working
+ * @access public
+ * @param  {String} promp The name of the prompt
+ * @event  repl#exit
+ */
 function startRepl(prompt)
 {
   console.log('Starting REPL session')
