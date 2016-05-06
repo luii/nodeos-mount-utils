@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha",
+    "test:watch": "npm run test -- -w",
+    "clean": "rm -rf coverage",
+    "coverage": "npm run clean && istanbul cover _mocha -- -R spec"
   },
   "repository": {
     "type": "git",
@@ -25,5 +28,15 @@
     "mkdirp": "^0.5.1",
     "nodeos-mount": "^0.2.0",
     "posix": "^4.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "errno-codes": "^1.0.2",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.4.5",
+    "proxyquire": "^1.7.4",
+    "rimraf": "^2.5.2",
+    "sinon": "^1.17.3",
+    "sinon-chai": "^2.8.0"
   }
 }
