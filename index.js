@@ -1,7 +1,7 @@
 'use strict'
 
 var fs    = require('fs')
-var spawn = require('child_process').spawn
+var proc = require('child_process')
 
 var mkdirp = require('mkdirp').sync
 var mount  = require('nodeos-mount')
@@ -81,7 +81,7 @@ function execInit(HOME, argv, callback)
     return callback(`${HOME} uid & gid don't match with its init`)
 
   // Start user's init
-  spawn(`${__dirname}/bin/chrootInit`, [homeStat.uid, homeStat.gid].concat(argv),
+  proc.spawn(`${__dirname}/bin/chrootInit`, [homeStat.uid, homeStat.gid].concat(argv),
   {
     cwd: HOME,
     stdio: 'inherit'
