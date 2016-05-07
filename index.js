@@ -151,7 +151,7 @@ function mountfs(envDev, path, type, flags, extras, callback)
     // Running on Docker?
     fs.statSync('/.dockerinit')
   }
-  catch(error)
+  catch(err)
   {
     // catch everything, but not "Error no Entry"
     if(err.code !== 'ENOENT') return callback(error)
