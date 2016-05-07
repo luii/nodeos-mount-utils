@@ -77,7 +77,7 @@ function execInit(HOME, argv, callback)
   if(!initStat.isFile())
     return callback(`${initPath} is not a file`);
 
-  if(homeStat.uid != initStat.uid || homeStat.gid != initStat.gid)
+  if(homeStat.uid !== initStat.uid || homeStat.gid !== initStat.gid)
     return callback(`${HOME} uid & gid don't match with its init`)
 
   // Start user's init
