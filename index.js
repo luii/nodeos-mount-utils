@@ -1,9 +1,8 @@
 'use strict'
 
-var fs    = require('fs')
-var proc = require('child_process')
-
-var mkdirp = require('mkdirp').sync
+var fs     = require('fs')
+var proc   = require('child_process')
+var mkdirp = require('mkdirp')
 var mount  = require('nodeos-mount')
 
 
@@ -24,7 +23,7 @@ function mkdir(path, callback)
 {
   try
   {
-    mkdirp(path, '0000')
+    mkdirp.sync(path, '0000')
   }
   catch(error)
   {
@@ -326,6 +325,7 @@ function startRepl(prompt)
 
 exports.flags = mount;
 
+exports.mkdir        = mkdir
 exports.execInit     = execInit;
 exports.mkdirMount   = mkdirMount;
 exports.mountfs      = mountfs;
