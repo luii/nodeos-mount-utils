@@ -153,7 +153,7 @@ function mountfs(envDev, path, type, flags, extras, callback)
   catch(err)
   {
     // catch everything, but not "Error no Entry"
-    if(err.code !== 'ENOENT') return callback(error)
+    if(err.code !== 'ENOENT') return callback(err)
 
     // get environment variable
     var dev = process.env[envDev]
