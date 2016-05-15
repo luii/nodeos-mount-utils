@@ -159,6 +159,7 @@ function mountfs(envDev, path, type, flags, extras, callback)
     var dev = process.env[envDev]
     if(dev)
     {
+
       // create the path and mount the dev file to it
       return mkdirMount(dev, path, type, flags, extras, function(error)
       {
@@ -209,7 +210,7 @@ function mountfs_path(devPath, path, type, flags, extras, callback)
   catch(error)
   {
     // catch everything, but not "Error no Entry"
-    if(err.code !== 'ENOENT') return callback(error)
+    if(error.code !== 'ENOENT') return callback(error)
 
     // mount the filesystem
     if(devPath)
