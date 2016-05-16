@@ -47,12 +47,13 @@ describe('mountfs', function () {
     var callback = this.spy()
     var statSync = this.stub(fs, 'statSync')
 
-    statSync.withArgs('/.dockerinit').returns(true)
+    statSync.withArgs('/.dockerinit').returns({})
 
     mountfs('envdev', '/path', 'type', [], '', callback)
 
     statSync.should.have.been.calledOnce
     statSync.should.have.been.calledWithExactly('/.dockerinit')
+    statSync.should.have.returned(sinon.match.object)
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWithExactly()
   }))
