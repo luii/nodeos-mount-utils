@@ -246,9 +246,9 @@ function move(source, target, callback)
   {
     if(error) return callback(error)
 
-    fs.readdir(source, function(error, files)
+    fs.readdir(source, function(err, files)
     {
-      if(error) return callback(error)
+      if(err) return callback(error)
 
       if(files.length) return callback()
       fs.rmdir(source, callback)
