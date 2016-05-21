@@ -4,7 +4,7 @@ var fs     = require('fs')
 var proc   = require('child_process')
 var mkdirp = require('mkdirp')
 var mount  = require('nodeos-mount')
-
+var repl   = require('repl')
 
 /**
  * @module nodeos-mount-utils
@@ -74,7 +74,7 @@ function execInit(HOME, argv, callback)
 
   // check if the init file is an actual file
   if(!initStat.isFile())
-    return callback(`${initPath} is not a file`);
+    return callback(`${initPath} is not a file`)
 
   if(homeStat.uid !== initStat.uid || homeStat.gid !== initStat.gid)
     return callback(`${HOME} uid & gid don't match with its init`)
@@ -113,7 +113,7 @@ function mkdirMount(dev, path, type, flags, extras, callback)
   {
     if(error) return callback(error)
 
-    mount.mount(dev, path, type, flags, extras, callback);
+    mount.mount(dev, path, type, flags, extras, callback)
   })
 }
 
@@ -214,7 +214,7 @@ function mountfs_path(devPath, path, type, flags, extras, callback)
 
     // mount the filesystem
     if(devPath)
-      return mkdirMount(devPath, path, type, flags, extras, callback);
+      return mkdirMount(devPath, path, type, flags, extras, callback)
 
     return callback(`${devPath} filesystem not defined`)
   }
@@ -316,11 +316,11 @@ function startRepl(prompt)
 {
   console.log('Starting REPL session')
 
-  require('repl').start(`${prompt}> `).on('exit', function()
+  repl.start(`${prompt}> `).on('exit', function()
   {
     console.log('Got "exit" event from repl!');
     process.exit(2);
-  });
+  })
 }
 
 
