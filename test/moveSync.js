@@ -82,4 +82,30 @@ describe('moveSync', function () {
     rmdirSync.should.have.been.calledOnce
     rmdirSync.should.have.been.calledWith('/source')
   }))
+  it('should readdirSync the source and do nothing if its not zero', sinon.test(function () {
+    var moveSync = utils.moveSync
+    var callback    = this.spy()
+    var mountSync   = this.stub(Mount, 'mountSync')
+    var readdirSync = this.stub(fs, 'readdirSync')
+    var rmdirSync   = this.stub(fs, 'rmdirSync')
+
+    mountSync.withArgs('/source', '/target', Mount.MS_MOVE).returns()
+    readdirSync.withArgs('/source').returns({ length: 1 })
+    rmdirSync.withArgs('/source').returns()
+
+    try {
+      moveSync('/source', '/target')
+    } catch (e) {
+
+    }
+    mountSync.should.have.been.calledOnce
+    mountSync.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE)
+
+    readdirSync.should.have.been.calledOnce
+    readdirSync.should.have.been.calledWith('/source')
+    readdirSync.should.have.returned({ length: 1 })
+
+    rmdirSync.should.not.have.been.calledOnce
+    rmdirSync.should.not.have.been.calledWith('/source')
+  }))
 })
