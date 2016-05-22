@@ -318,20 +318,19 @@ function startRepl(prompt)
 
   repl.start(`${prompt}> `).on('exit', function()
   {
-    console.log('Got "exit" event from repl!');
-    process.exit(2);
+    console.log('Got "exit" event from repl!')
+    process.exit(2)
   })
 }
 
 
-exports.flags = mount;
-
+exports.flags        = mount
 exports.mkdir        = mkdir
-exports.execInit     = execInit;
-exports.mkdirMount   = mkdirMount;
-exports.mountfs      = mountfs;
-exports.mountfs_path = mountfs_path;
-exports.move         = move;
-exports.moveSync     = moveSync;
-exports.mkdirMove    = mkdirMove;
-exports.startRepl    = startRepl;
+exports.execInit     = execInit
+exports.mkdirMount   = mkdirMount
+exports.mountfs      = mountfs
+exports.mountfs_path = mountfs_path
+exports.move         = move
+exports.moveSync     = moveSync
+exports.mkdirMove    = mkdirMove
+exports.startRepl    = startRepl
