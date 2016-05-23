@@ -1,8 +1,8 @@
 'use strict'
 
-var fs     = require('fs')
+var fs     = require('fs-promise')
 var proc   = require('child_process')
-var mkdirp = require('mkdirp')
+var mkdirp = require('mkdirp-then')
 var mount  = require('nodeos-mount')
 var repl   = require('repl')
 
@@ -19,19 +19,14 @@ var repl   = require('repl')
  * @return {Function} Invokes and returns the callback.
  *                    The callback can be invoked with a error
  */
-function mkdir(path, callback)
+function mkdir(path)
 {
-  try
-  {
-    mkdirp.sync(path, '0000')
-  }
-  catch(error)
-  {
-    // catch everything, but not Entry Exists
-    if(error.code !== 'EEXIST') return callback(error)
-  }
-
-  return callback()
+    mkdirp(path, '0000').then(() => {
+      return Promise.resolve()
+    }).catch(err => {
+      if (err.code !== 'EEXIST') return Promise.reject(err)
+    })
+  })
 }
 
 /**
