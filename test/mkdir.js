@@ -19,16 +19,16 @@ describe('mkdir', function () {
     utils.execInit.should.be.a.function
   })
   it('should try to create a folder with 0000 permissions', sinon.test(function () {
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var callback   = this.spy()
-    var mkdir      = utils.mkdir
+    var mkdirpAsync = this.stub(mkdirp, 'mkdirp')
+    var callback    = this.spy()
+    var mkdir       = utils.mkdir
 
-    mkdirpSync.withArgs('/path', '0000').returns('/path')
+    mkdirpAsync.withArgs('/path', '0000', sinon.match.func).yields()
 
     mkdir('/path', callback)
 
-    mkdirpSync.should.have.been.calledOnce
-    mkdirpSync.should.have.been.calledWithExactly('/path', '0000')
+    mkdirpAsync.should.have.been.calledOnce
+    mkdirpAsync.should.have.been.calledWithExactly('/path', '0000', sinon.match.func)
 
     callback.should.not.have.been.calledWith(UNKNOWN)
     callback.should.not.have.been.calledWith(EEXIST)
@@ -36,37 +36,33 @@ describe('mkdir', function () {
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWithExactly()
   }))
-  it('should throw an error if it cant create the folder', sinon.test(function () {
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var callback   = this.spy()
-    var mkdir      = utils.mkdir
+  it("should throw an error if it can't create the folder", sinon.test(function () {
+    var mkdirpAsync = this.stub(mkdirp, 'mkdirp')
+    var callback    = this.spy()
+    var mkdir       = utils.mkdir
 
-    mkdirpSync.withArgs('/path', '0000').throws(UNKNOWN)
+    mkdirpAsync.withArgs('/path', '0000').yields(UNKNOWN)
 
     mkdir('/path', callback)
 
-    mkdirpSync.should.have.been.calledOnce
-    mkdirpSync.should.have.been.calledWithExactly('/path', '0000')
-    mkdirpSync.should.have.thrown(UNKNOWN)
-    mkdirpSync.should.not.have.thrown(EEXIST)
+    mkdirpAsync.should.have.been.calledOnce
+    mkdirpAsync.should.have.been.calledWithExactly('/path', '0000', sinon.match.func)
 
     callback.should.have.been.calledOnce
     callback.should.not.have.been.calledWith(EEXIST)
     callback.should.have.been.calledWithExactly(UNKNOWN)
   }))
   it('should surpress an EEXIST error and return just the callback', sinon.test(function () {
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var callback   = this.spy()
-    var mkdir      = utils.mkdir
+    var mkdirpAsync = this.stub(mkdirp, 'mkdirp')
+    var callback    = this.spy()
+    var mkdir       = utils.mkdir
 
-    mkdirpSync.withArgs('/path', '0000').throws(EEXIST)
+    mkdirpAsync.withArgs('/path', '0000').yields(EEXIST)
 
     mkdir('/path', callback)
 
-    mkdirpSync.should.have.been.calledOnce
-    mkdirpSync.should.have.been.calledWithExactly('/path', '0000')
-    mkdirpSync.should.not.have.thrown(UNKNOWN)
-    mkdirpSync.should.have.thrown(EEXIST)
+    mkdirpAsync.should.have.been.calledOnce
+    mkdirpAsync.should.have.been.calledWithExactly('/path', '0000', sinon.match.func)
 
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWithExactly()

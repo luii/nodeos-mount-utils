@@ -24,24 +24,24 @@ describe('move', function () {
     var callback = this.spy()
     var mount    = this.stub(Mount, 'mount')
 
-    mount.withArgs('/source', '/target', Mount.MS_MOVE, sinon.match.func).yields()
+    mount.withArgs('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func).yields()
 
     move('/source', '/target', callback)
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE, sinon.match.func)
+    mount.should.have.been.calledWith('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func)
   }))
   it('should try to mount a source to a target but return a error', sinon.test(function () {
     var move     = utils.move
     var callback = this.spy()
     var mount    = this.stub(Mount, 'mount')
 
-    mount.withArgs('/source', '/target', Mount.MS_MOVE, sinon.match.func).yields(UNKNOWN)
+    mount.withArgs('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func).yields(UNKNOWN)
 
     move('/source', '/target', callback)
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE, sinon.match.func)
+    mount.should.have.been.calledWith('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func)
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWithExactly(UNKNOWN)
   }))
@@ -51,13 +51,13 @@ describe('move', function () {
     var mount    = this.stub(Mount, 'mount')
     var readdir  = this.stub(fs, 'readdir')
 
-    mount.withArgs('/source', '/target', Mount.MS_MOVE, sinon.match.func).yields()
+    mount.withArgs('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func).yields()
     readdir.withArgs('/source', sinon.match.func).yields(null, [])
 
     move('/source', '/target', callback)
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE, sinon.match.func)
+    mount.should.have.been.calledWith('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func)
 
     readdir.should.have.been.calledOnce
     readdir.should.have.been.calledWith('/source', sinon.match.func)
@@ -69,33 +69,36 @@ describe('move', function () {
     var readdir  = this.stub(fs, 'readdir')
     var rmdir    = this.stub(fs, 'rmdir')
 
-    mount.withArgs('/source', '/target', Mount.MS_MOVE, sinon.match.func).yields()
+    mount.withArgs('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func).yields()
     readdir.withArgs('/source', sinon.match.func).yields(null, [])
     rmdir.withArgs('/source', callback).yields()
 
     move('/source', '/target', callback)
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE, sinon.match.func)
+    mount.should.have.been.calledWith('/target', Mount.MS_MOVE,
+                                      {devFile: '/source'}, sinon.match.func)
 
     readdir.should.have.been.calledOnce
     readdir.should.have.been.calledWith('/source', sinon.match.func)
   }))
-  it('should check if any files are in this directory and return the callback', sinon.test(function () {
+  it('should check if any files are in this directory and return the callback',
+  sinon.test(function () {
     var move     = utils.move
     var callback = this.spy()
     var mount    = this.stub(Mount, 'mount')
     var readdir  = this.stub(fs, 'readdir')
     var rmdir    = this.stub(fs, 'rmdir')
 
-    mount.withArgs('/source', '/target', Mount.MS_MOVE, sinon.match.func).yields()
+    mount.withArgs('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func).yields()
     readdir.withArgs('/source', sinon.match.func).yields(null, [ '/file1.ext' ])
     rmdir.withArgs('/source', callback).yields()
 
     move('/source', '/target', callback)
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE, sinon.match.func)
+    mount.should.have.been.calledWith('/target', Mount.MS_MOVE,
+                                      {devFile: '/source'}, sinon.match.func)
 
     readdir.should.have.been.calledOnce
     readdir.should.have.been.calledWith('/source', sinon.match.func)
@@ -110,14 +113,15 @@ describe('move', function () {
     var readdir  = this.stub(fs, 'readdir')
     var rmdir    = this.stub(fs, 'rmdir')
 
-    mount.withArgs('/source', '/target', Mount.MS_MOVE, sinon.match.func).yields()
+    mount.withArgs('/target', Mount.MS_MOVE, {devFile: '/source'}, sinon.match.func).yields()
     readdir.withArgs('/source', sinon.match.func).yields(null, [])
     rmdir.withArgs('/source', callback).yields()
 
     move('/source', '/target', callback)
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE, sinon.match.func)
+    mount.should.have.been.calledWith('/target', Mount.MS_MOVE,
+                                      {devFile: '/source'}, sinon.match.func)
 
     readdir.should.have.been.calledOnce
     readdir.should.have.been.calledWith('/source', sinon.match.func)

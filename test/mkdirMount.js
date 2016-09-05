@@ -15,63 +15,63 @@ describe('mkdirMount', function () {
   var UNKNOWN = Error.get(Error.UNKNOWN)
   var EEXIST  = Error.get(Error.EEXIST)
 
-  it('should be a function', function () { utils.mkdirMount.should.be.a.function })
+  it('should be a function', function () {
+    utils.mkdirMount.should.be.a.function
+  })
   it('should return a UNKNOWN error returned by mkdir', sinon.test(function () {
-    var mount      = this.stub(Mount, 'mount')
-    var mkdirpSync  = this.stub(mkdirp, 'sync')
-    var callback   = this.spy()
-    var mkdirMount = utils.mkdirMount
+    var mount       = this.stub(Mount, 'mount')
+    var mkdirpAsync = this.stub(mkdirp, 'mkdirp')
+    var callback    = this.spy()
+    var mkdirMount  = utils.mkdirMount
 
-    mount.withArgs('/dev', '/path', 'type', [], '', callback).yields()
-    mkdirpSync.withArgs('/path', '0000').throws(UNKNOWN)
+    mount.withArgs('/path', 'type', callback).yields()
+    mkdirpAsync.withArgs('/path', '0000').yields(UNKNOWN)
 
-    mkdirMount('/dev', '/path', 'type', [], '', callback)
+    mkdirMount('/path', 'type', callback)
 
-    mkdirpSync.should.have.been.calledWith('/path', '0000')
-    mkdirpSync.should.have.thrown(UNKNOWN)
+    mkdirpAsync.should.have.been.calledWith('/path', '0000', sinon.match.func)
 
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWith(UNKNOWN)
 
     mount.should.not.have.been.calledOnce
-    mount.should.not.have.been.calledWith('/dev', '/path', 'type', [], '', callback)
+    mount.should.not.have.been.calledWith('/path', 'type', callback)
   }))
-  it('should (irgnore or not return) a EEXIST returned by mkdir', sinon.test(function () {
-    var mount      = this.stub(Mount, 'mount')
-    var mkdirpSync  = this.stub(mkdirp, 'sync')
-    var callback   = this.spy()
-    var mkdirMount = utils.mkdirMount
+  it('should (ignore or not return) a EEXIST returned by mkdir', sinon.test(function () {
+    var mount        = this.stub(Mount, 'mount')
+    var mkdirpAsync  = this.stub(mkdirp, 'mkdirp')
+    var callback     = this.spy()
+    var mkdirMount   = utils.mkdirMount
 
-    mount.withArgs('/dev', '/path', 'type', [], '', callback).yields()
-    mkdirpSync.withArgs('/path', '0000').throws(EEXIST)
+    mount.withArgs('/path', 'type', null, null, callback).yields()
+    mkdirpAsync.withArgs('/path', '0000').yields(EEXIST)
 
-    mkdirMount('/dev', '/path', 'type', [], '', callback)
+    mkdirMount('/path', 'type', callback)
 
-    mkdirpSync.should.have.been.calledWith('/path', '0000')
-    mkdirpSync.should.have.thrown(EEXIST)
+    mkdirpAsync.should.have.been.calledWith('/path', '0000', sinon.match.func)
 
     callback.should.have.been.calledOnce
     callback.should.not.have.been.calledWith(EEXIST)
     callback.should.have.been.calledWith()
 
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/dev', '/path', 'type', [], '', callback)
+    mount.should.have.been.calledWith('/path', 'type', null, null, callback)
   }))
   it('should mount the created directory to a dev file', sinon.test(function () {
-    var mount      = this.stub(Mount, 'mount')
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var callback   = this.spy()
-    var mkdirMount = utils.mkdirMount
+    var mount       = this.stub(Mount, 'mount')
+    var mkdirpAsync = this.stub(mkdirp, 'mkdirp')
+    var callback    = this.spy()
+    var mkdirMount  = utils.mkdirMount
 
-    mount.withArgs('/dev', '/path', 'type', [], '', callback).yields()
-    mkdirpSync.withArgs('/path', '0000').returns('/path')
+    mount.withArgs('/path', 'type', null, null, callback).yields()
+    mkdirpAsync.withArgs('/path', '0000').yields()
 
-    mkdirMount('/dev', '/path', 'type', [], '', callback)
+    mkdirMount('/path', 'type', callback)
 
     callback.should.have.been.not.calledWith(UNKNOWN)
     callback.should.have.been.not.calledWith(EEXIST)
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/dev', '/path', 'type', [], '', callback)
+    mount.should.have.been.calledWith('/path', 'type', null, null, callback)
 
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWith()

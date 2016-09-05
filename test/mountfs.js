@@ -21,154 +21,85 @@ describe('mountfs', function () {
   it('should be a function', function () {
     utils.mountfs.should.be.a.function
   })
-  it('should take at least five arguments', sinon.test(function () {
+
+  it('should take at least three arguments', sinon.test(function () {
     var mountfs = this.spy(utils, 'mountfs')
     var callback = this.spy()
 
-    mountfs('envid', '/path', 'type', [], callback)
+    mountfs('/path', 'type', callback)
 
     mountfs.should.have.been.calledOnce
-    mountfs.should.have.been.calledWith('envid', '/path', 'type', [], callback)
+    mountfs.should.have.been.calledWith('/path', 'type', callback)
+    mountfs.args[0].length.should.equal(3)
+  }))
+  it('should take at most 5 arguments', sinon.test(function () {
+    var mountfs = this.spy(utils, 'mountfs')
+    var callback = this.spy()
+
+    mountfs('/path', 'type', [], '', callback)
+
+    mountfs.should.have.been.calledOnce
+    mountfs.should.have.been.calledWith('/path', 'type', [], '', callback)
     mountfs.args[0].length.should.equal(5)
   }))
-  it('should take at most 6 arguments', sinon.test(function () {
-    var mountfs = this.spy(utils, 'mountfs')
+  it('should make a stat call for "/.dockerinit" and skip the mount',
+  sinon.test(function () {
+    var mountfs  = utils.mountfs
     var callback = this.spy()
+    var stat     = this.stub(fs, 'stat')
 
-    mountfs('envid', '/path', 'type', [], '', callback)
-    mountfs.should.have.been.calledOnce
-    mountfs.should.have.been.calledWith('envid', '/path', 'type', [], '', callback)
-    mountfs.args[0].length.should.equal(6)
-//
-  }))
+    stat.withArgs('/.dockerinit', sinon.match.func).yields()
 
-  it('should make a statSync call for /.dockerinit and skip the mount', sinon.test(function () {
-    var mountfs = utils.mountfs
-    var callback = this.spy()
-    var statSync = this.stub(fs, 'statSync')
+    mountfs('/path', 'type', {devFile: '/devpath'}, callback)
 
-    statSync.withArgs('/.dockerinit').returns({})
+    stat.should.have.been.calledOnce
+    stat.should.have.been.calledWithExactly('/.dockerinit', sinon.match.func)
 
-    mountfs('envdev', '/path', 'type', [], '', callback)
-
-    statSync.should.have.been.calledOnce
-    statSync.should.have.been.calledWithExactly('/.dockerinit')
-    statSync.should.have.returned(sinon.match.object)
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWithExactly()
   }))
-  it('should return every error expect ENOENT', sinon.test(function () {
-    var mountfs = utils.mountfs
+  it('should return every error except ENOENT thrown by stat',
+  sinon.test(function () {
+    var mountfs  = utils.mountfs
     var callback = this.spy()
-    var statSync = this.stub(fs, 'statSync')
+    var stat     = this.stub(fs, 'stat')
 
-    statSync.withArgs('/.dockerinit').throws(UNKNOWN)
+    stat.withArgs('/.dockerinit', sinon.match.func).yields(UNKNOWN)
 
-    mountfs('envdev', '/path', 'type', [], '', callback)
+    mountfs('/path', 'type', {devFile: '/devpath'}, callback)
 
-    statSync.should.have.been.calledOnce
-    statSync.should.have.been.calledWithExactly('/.dockerinit')
+    stat.should.have.been.calledOnce
+    stat.should.have.been.calledWithExactly('/.dockerinit', sinon.match.func)
+
     callback.should.have.been.calledOnce
     callback.should.have.been.calledWithExactly(UNKNOWN)
-
-    statSync.should.have.been.calledBefore(callback)
   }))
-  it('should swallow a ENOENT Error on statSync and keep on mounting the fs', sinon.test(function () {
-    var mountfs    = utils.mountfs
-    var callback   = this.spy()
-    var statSync   = this.stub(fs, 'statSync')
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var mount      = this.stub(Mount, 'mount')
+  it('should ignore a ENOENT yield by stat and should mount',
+  sinon.test(function () {
+    var mountfs     = utils.mountfs
+    var callback    = this.spy()
+    var stat        = this.stub(fs, 'stat')
+    var mkdirpAsync = this.stub(mkdirp, 'mkdirp')
+    var mount       = this.stub(Mount, 'mount')
 
-    process.env['envdev'] = '/dev'
+    stat.withArgs('/.dockerinit', sinon.match.func).yields(ENOENT)
+    mkdirpAsync.withArgs('/path', '0000', sinon.match.func).yields()
+    mount.withArgs('/path', 'type', null, null, callback).yields()
 
-    statSync.withArgs('/.dockerinit').throws(ENOENT)
-    mkdirpSync.withArgs('/path', '0000').returns()
-    mount.withArgs('/dev', '/path', 'type', [], '', sinon.match.func).yields()
+    mountfs('/path', 'type', callback)
 
-    mountfs('envdev', '/path', 'type', [], '', callback)
+    stat.should.have.been.calledOnce
+    stat.should.have.been.calledWithExactly('/.dockerinit', sinon.match.func)
 
-    statSync.should.have.been.calledOnce
-    statSync.should.have.been.calledWithExactly('/.dockerinit')
-    callback.should.not.have.been.calledWithExactly(ENOENT)
-    mkdirpSync.should.have.been.calledOnce
-    mkdirpSync.should.have.been.calledWithExactly('/path', '0000')
+    mkdirpAsync.should.have.been.calledOnce
+    mkdirpAsync.should.have.been.calledWithExactly('/path', '0000', sinon.match.func)
+
     mount.should.have.been.calledOnce
-    mount.should.have.been.calledWith('/dev', '/path', 'type', [], '', sinon.match.func)
+    mount.should.have.been.calledWithExactly('/path', 'type', null, null, callback)
 
-  }))
-  it('should return every error returned by mkdirMount', sinon.test(function () {
-    var mountfs    = utils.mountfs
-    var callback   = this.spy()
-    var statSync   = this.stub(fs, 'statSync')
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var mount      = this.stub(Mount, 'mount')
-
-    process.env['envdev'] = '/dev'
-
-    statSync.withArgs('/.dockerinit').throws(ENOENT)
-    mkdirpSync.withArgs('/path', '0000').throws(UNKNOWN)
-    mount.withArgs('/dev', '/path', 'type', [], '', sinon.match.func).yields()
-
-    mountfs('envdev', '/path', 'type', [], '', callback)
-
-    statSync.should.have.been.calledOnce
-    statSync.should.have.been.calledWithExactly('/.dockerinit')
+    callback.should.have.been.calledOnce
+    callback.should.have.been.calledWithExactly()
 
     callback.should.not.have.been.calledWithExactly(ENOENT)
-    mkdirpSync.should.have.been.calledOnce
-    mkdirpSync.should.have.been.calledWithExactly('/path', '0000')
-    mkdirpSync.should.have.thrown(UNKNOWN)
-    mount.should.have.not.been.calledOnce
-    mount.should.have.not.been.calledWith('/dev', '/path', 'type', [], '', sinon.match.func)
-
-  }))
-  it('should delete the environment variable afterwards and call the callback', sinon.test(function () {
-    var mountfs    = utils.mountfs
-    var callback   = this.spy()
-    var statSync   = this.stub(fs, 'statSync')
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var mount      = this.stub(Mount, 'mount')
-
-    process.env['envdev'] = '/dev'
-    expect(process.env['envdev']).to.equal('/dev')
-
-    statSync.withArgs('/.dockerinit').throws(ENOENT)
-    mkdirpSync.withArgs('/path', '0000').returns()
-    mount.withArgs('/dev', '/path', 'type', [], '', sinon.match.func).yields()
-
-    mountfs('envdev', '/path', 'type', [], '', callback)
-
-    statSync.should.have.been.calledOnce
-    statSync.should.have.been.calledWithExactly('/.dockerinit')
-
-    callback.should.not.have.been.calledWithExactly(ENOENT)
-    mkdirpSync.should.have.been.calledOnce
-    mkdirpSync.should.have.been.calledWithExactly('/path', '0000')
-    mount.should.have.been.calledOnce
-    mount.should.have.been.calledWithExactly('/dev', '/path', 'type', [], '', sinon.match.func)
-
-    expect(process.env['envdev']).to.be.undefined
-  }))
-  it('should return "envid" filesystem not defined', sinon.test(function () {
-    var mountfs    = utils.mountfs
-    var callback   = this.spy()
-    var statSync   = this.stub(fs, 'statSync')
-    var mkdirpSync = this.stub(mkdirp, 'sync')
-    var mount      = this.stub(Mount, 'mount')
-
-    process.env['envdev'] = '/dev'
-
-    statSync.withArgs('/.dockerinit').throws(ENOENT)
-    mkdirpSync.withArgs('/path', '0000').returns()
-    mount.withArgs('/dev', '/path', 'type', [], '', sinon.match.func).yields()
-
-    mountfs('envde', '/path', 'type', [], '', callback)
-
-    statSync.should.have.been.calledOnce
-    statSync.should.have.been.calledWithExactly('/.dockerinit')
-    callback.should.not.have.been.calledWithExactly(ENOENT)
-    expect(process.env['envde']).to.be.undefined
-    callback.should.have.been.calledWithExactly('envde filesystem not defined')
   }))
 })

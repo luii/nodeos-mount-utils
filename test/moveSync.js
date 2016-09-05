@@ -33,7 +33,7 @@ describe('moveSync', function () {
     moveSync('/source', '/target')
 
     mountSync.should.have.been.calledOnce
-    mountSync.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE)
+    mountSync.should.have.been.calledWith('/target', Mount.MS_MOVE, {devFile: '/source'})
     mountSync.should.not.have.thrown(ENOENT)
     mountSync.should.not.have.thrown(UNKNOWN)
   }))
@@ -73,7 +73,7 @@ describe('moveSync', function () {
 
     }
     mountSync.should.have.been.calledOnce
-    mountSync.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE)
+    mountSync.should.have.been.calledWith('/target', Mount.MS_MOVE, {devFile: '/source'})
 
     readdirSync.should.have.been.calledOnce
     readdirSync.should.have.been.calledWith('/source')
@@ -99,7 +99,7 @@ describe('moveSync', function () {
 
     }
     mountSync.should.have.been.calledOnce
-    mountSync.should.have.been.calledWith('/source', '/target', Mount.MS_MOVE)
+    mountSync.should.have.been.calledWith('/target', Mount.MS_MOVE, {devFile: '/source'})
 
     readdirSync.should.have.been.calledOnce
     readdirSync.should.have.been.calledWith('/source')
