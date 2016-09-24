@@ -29,8 +29,7 @@ function mkdir(path, callback)
 }
 
 /**
- * Asynchronous function for creating a
- * directory and then mount the `dev` file to it
+ * Asynchronously create a directory and then mount the filesystem on it
  *
  * @example
  *   mkdirMount('path/to/my/dir', 'type', {devFile: 'path/to/my/dev'},
@@ -52,20 +51,6 @@ function mkdir(path, callback)
  */
 function mkdirMount(path, type, flags, extras, callback)
 {
-  if(flags && (flags.constructor.name === 'Object' || flags instanceof Function))
-  {
-    callback = extras
-    extras   = flags
-    flags    = null
-  }
-
-  if(extras instanceof Function)
-  {
-    callback = extras
-    extras   = null
-  }
-
-
   mkdir(path, function(error)
   {
     if(error) return callback(error)
@@ -96,20 +81,6 @@ function mkdirMount(path, type, flags, extras, callback)
  */
 function mountfs(path, type, flags, extras, callback)
 {
-  if(flags && (flags.constructor.name === 'Object' || flags instanceof Function))
-  {
-    callback = extras
-    extras   = flags
-    flags    = null
-  }
-
-  if(extras instanceof Function)
-  {
-    callback = extras
-    extras   = null
-  }
-
-
   fs.stat('/.dockerinit', function(error)
   {
     // Running on Docker?
