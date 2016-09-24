@@ -16,7 +16,7 @@ describe('mkdir', function () {
   var EEXIST = Error.get(Error.EEXIST)
 
   it('should be a function', function () {
-    utils.execInit.should.be.a.function
+    utils.mkdir.should.be.a.function
   })
   it('should try to create a folder with 0000 permissions', sinon.test(function () {
     var mkdirpAsync = this.stub(mkdirp, 'mkdirp')

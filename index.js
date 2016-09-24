@@ -1,7 +1,6 @@
 'use strict'
 
 var fs   = require('fs')
-var proc = require('child_process')
 var repl = require('repl')
 
 var mkdirp = require('mkdirp')
@@ -26,64 +25,6 @@ function mkdir(path, callback)
     if(error && error.code !== 'EEXIST') return callback(error)
 
     return callback()
-  })
-}
-
-/**
- * Execute the init file
- *
- * @param {String} HOME Path of the home folder where the init file is located
- * @param {Array}  [argv] Array of arguments
- */
-function execInit(HOME, argv, callback)
-{
-  if(argv instanceof Function)
-  {
-    callback = argv
-    argv = []
-  }
-
-  // get a stat of the home folder
-  fs.stat(HOME, function(error, homeStat)
-  {
-    if(error)
-    {
-      // Return every error but no ENOENT
-      if(error.code !== 'ENOENT') return callback(error)
-
-      return callback(`${HOME} not found`)
-    }
-
-    // path to the init file
-    const initPath = `${HOME}/init`
-
-    fs.stat(initPath, function(error, initStat)
-    {
-      if(error)
-      {
-        // Return every error but no ENOENT
-        if(error.code !== 'ENOENT') return callback(error)
-
-        return callback(`${initPath} not found`)
-      }
-
-      // check if the init file is an actual file
-      if(!initStat.isFile())
-        return callback(`${initPath} is not a file`)
-
-      if(homeStat.uid !== initStat.uid || homeStat.gid !== initStat.gid)
-        return callback(`${HOME} uid & gid don't match with its init`)
-
-      // Start user's init
-      argv = [homeStat.uid, homeStat.gid].concat(argv)
-      const env =
-      {
-        cwd: HOME,
-        stdio: 'inherit'
-      }
-
-      proc.spawn(`${__dirname}/bin/chrootInit`, argv, env).on('exit', callback)
-    })
   })
 }
 
@@ -287,7 +228,6 @@ function startRepl(prompt)
 
 exports.flags      = mount
 exports.mkdir      = mkdir
-exports.execInit   = execInit
 exports.mkdirMount = mkdirMount
 exports.mountfs    = mountfs
 exports.move       = move
