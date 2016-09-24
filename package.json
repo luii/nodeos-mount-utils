@@ -26,8 +26,8 @@
   "homepage": "https://github.com/NodeOS/nodeos-mount-utils",
   "dependencies": {
     "mkdirp": "^0.5.1",
-    "nodeos-mount": "^0.3.0",
-    "posix": "^4.0.2"
+    "nodeos-mount": "^0.3.1",
+    "posix": "^4.1.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",
@@ -36,7 +36,7 @@
     "mocha": "^3.0.2",
     "proxyquire": "^1.7.10",
     "rimraf": "^2.5.4",
-    "sinon": "^1.17.5",
+    "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0"
   }
 }
