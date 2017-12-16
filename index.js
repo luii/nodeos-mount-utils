@@ -1,9 +1,9 @@
 'use strict'
 
-const fs     = require('fs-extra')
-const repl   = require('repl')
-const mkdirp = require('mkdirp')
-const mount  = require('nodeos-mount')
+const fs                  = require('fs-extra')
+const repl                = require('repl')
+const { mkdirp }          = require('mkdirp')
+const { mount, MS_MOVE }  = require('nodeos-mount')
 
 
 /**
@@ -24,7 +24,7 @@ const mount  = require('nodeos-mount')
  */
 function mkdir(path) {
   return new Promise((resolve, reject) => {
-    mkdirp.mkdirp(path, '0000', function(error) {
+    mkdirp(path, '0000', function(error) {
       // catch everything, but not Entry Exists
       if(error && error.code !== 'EEXIST') return reject(error)
   
@@ -56,7 +56,7 @@ function mkdir(path) {
 async function mkdirMount(path, type, flags, extras) {
   try {
     await mkdir(path)
-    await mount.mount(path, type, flags, extras)
+    await mount(path, type, flags, extras)
   } catch (error) {
     return error
   }
@@ -107,7 +107,7 @@ async function mountfs(path, type, flags, extras) {
  */
 async function move(source, target) {
   try {
-    await mount.mount(trarget, mount.MS_MOVE, { devFile: source })
+    await mount(trarget, MS_MOVE, { devFile: source })
     let files = await fs.readdir(source)
 
     if (files.length) return Promise.resolve()
@@ -134,7 +134,7 @@ async function move(source, target) {
  * @param {String} target The path to move the subtree into
  */
 function moveSync(source, target) {
-  mount.mountSync(target, mount.MS_MOVE, {devFile: source})
+  mountSync(target, MS_MOVE, {devFile: source})
 
   // if no more file is in the source path
   if(!fs.readdirSync(source).length)
