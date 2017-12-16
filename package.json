@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/NodeOS/nodeos-mount-utils",
   "dependencies": {
+    "fs-extra": "^5.0.0",
     "mkdirp": "^0.5.1",
     "nodeos-mount": "^0.3.1"
   },
